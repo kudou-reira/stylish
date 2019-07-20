@@ -1,0 +1,122 @@
+version: '2.3'  # version of compose format 
+
+services:
+  neural-network-service:
+    restart: always
+    runtime: nvidia
+    build:
+      dockerfile: Dockerfile
+      context: ./deep_net  # path is relative to docker-compose.yml location
+    volumes:
+      - ./deep_net:/usr/src/app # mount point
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - FLASK_ENV=development
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - redis
+
+  # to set up redis and celery
+  # https://github.com/mattkohl/docker-flask-celery-redis/tree/master/api
+  # https://www.agiliq.com/blog/2015/07/getting-started-with-celery-and-redis/
+  # https://stackoverflow.com/questions/39098668/celery-and-flask-in-same-docker-compose
+
+  worker:
+    restart: always
+    build:
+      context: celery-queue
+      dockerfile: Dockerfile
+    runtime: nvidia
+    volumes:
+      - ./celery-queue:/queue # mount point
+      - images:/queue/images
+    command: nodemon --watch /queue --exec "python" restart_workers.py
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - redis
+
+  monitor:
+    restart: always
+    build:
+      context: celery-queue
+      dockerfile: Dockerfile
+    ports:
+     - "5555:5555"
+    entrypoint: flower
+    command:  -A tasks --port=5555 --broker=redis://redis:6379/0
+    depends_on:
+      - redis
+
+  redis:
+    image: redis
+    
+  nginx:
+    restart: always
+    build:
+      dockerfile: Dockerfile
+      context: ./nginx
+    ports:
+      - '3050:80'
+
+  node-service:
+    restart: on-failure
+    build:
+      dockerfile: Dockerfile
+      context: ./node
+
+  mongo:
+    image: 'mongo:latest'
+    container_name: 'mongo'
+    ports:
+      - '27107:27017'
+    volumes:
+      # - ./mongodata:/data/db
+      - database:/data/db
+
+  go-service:
+    restart: always
+    build:
+      dockerfile: Dockerfile
+      context: ./go_server
+    volumes:
+      - ./go_server:/go/src/github.com/kudou-reira/myproject
+    depends_on:
+     - mongo
+    # expose:
+    #   - "808
+    # ports:
+    #   - 8080:8080
+
+  react-app:
+    restart: always
+    build: 
+      dockerfile: Dockerfile
+      context: ./react
+    volumes:
+      - './react:/usr/src/app'
+      - '/usr/src/app/node_modules'
+      - images:/usr/src/app/public/images
+    # ports:
+    #   - '3000:3000'
+    depends_on:
+      - worker
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+      - CHOKIDAR_INTERVAL=1000
+
+volumes:
+  images:
+    driver: local
+    driver_opts:
+        type: none
+        o: bind
+        device: $PWD/saved_images
+  database:
+    driver: local
+    driver_opts:
+        type: none
+        o: bind
+        device: $PWD/mongodata

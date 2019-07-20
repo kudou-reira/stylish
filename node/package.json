@@ -1,0 +1,10 @@
+{
+    "dependencies": {
+        "express": "*",
+        "nodemon": "*"
+    },
+    "scripts": {
+        "dev": "nodemon",
+        "start": "nodemon index.js"
+    }
+}

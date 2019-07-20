@@ -1,0 +1,19 @@
+Flask==1.0.2
+flask-restful==0.3.6
+scikit-learn
+scipy
+numpy
+pandas
+tensorflow
+flask-cors
+opencv-python
+Pillow
+torch
+torchvision
+scikit-image
+flask-socketio
+eventlet
+celery
+redis
+# gevent
+# gevent-websocket
