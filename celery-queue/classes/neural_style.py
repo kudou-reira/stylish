@@ -8,7 +8,7 @@ import numpy as np
  
 import tensorflow.keras.backend as keras
  
-from classes.utils import img_load, vgg16_avg_pool, vgg16_avg_pool_cutoff, style_loss, minimize, show_img, save_img
+from classes.utils import img_load, vgg16_avg_pool, vgg16_avg_pool_cutoff, style_loss, minimize, show_img, export_figure_matplotlib
  
 # config = tf.ConfigProto()
 # config.gpu_options.allow_growth = True  # dynamically grow the memory used on the GPU
@@ -18,9 +18,11 @@ from classes.utils import img_load, vgg16_avg_pool, vgg16_avg_pool_cutoff, style
 # set_session(sess)  # set this TensorFlow session as the default session for Keras
  
 class Style_Transfer(object):
-    def __init__(self, initial_img, style_img, output_path):
+    def __init__(self, initial_img, style_img, output_path, output_name):
         self.initial = initial_img
         self.style = style_img
+        self.output_path = output_path
+        self.output_name = output_name
  
         self.vgg = None
         self.batch_shape = None
@@ -101,9 +103,17 @@ class Style_Transfer(object):
 
         # show progress of minimize?
  
-        img = minimize(self.loss_and_grads_wrapper, 10, self.batch_shape)
+        plot_path = self.output_path + "plot.png"
+        img = minimize(self.loss_and_grads_wrapper, 10, self.batch_shape, plot_path)
         # show_img(img)
         print("this is img", img)
 
-        # save_img(img)
-        # finalize_img()
+        output_img = self.output_path + self.output_name
+        export_figure_matplotlib(img, output_img)
+
+        cache = {
+			'plot': plot_path,
+			'output': output_img
+		}
+
+        return cache

@@ -79,7 +79,7 @@ class IndividualImage extends Component {
     }
 
     render() {
-        const { classes, nLabels, image, handleClose } = this.props;
+        const { classes, tag, image, handleClose } = this.props;
         return(
             <Dialog
                 classes={{ paper: classes.dialogPaper }}
@@ -88,7 +88,7 @@ class IndividualImage extends Component {
                 open={this.props.openImage}
             >
                 <DialogTitle id="customized-dialog-title" onClose={handleClose}>
-                    Number of Labels: {nLabels}
+                    {tag}
                 </DialogTitle>
                 <Divider />
                 <DialogContent>

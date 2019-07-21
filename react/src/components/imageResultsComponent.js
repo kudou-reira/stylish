@@ -141,7 +141,7 @@ class ImageResults extends Component {
             cacheToDisplay: '',
             minSize: 225,
             resize: {},
-            nLabels: 0,
+            tag: '',
             rating: 1,
             feedback: ''
         };
@@ -163,11 +163,11 @@ class ImageResults extends Component {
     };
 
     handleClose = () => {
-        const { file_name, time_uploaded } = this.state.cacheToDisplay;
+        const { output_image, time_uploaded } = this.state.cacheToDisplay;
         const { rating, feedback } = this.state;
         const { database } = this.props;
 
-        this.props.updateRating(database, file_name, time_uploaded, rating, feedback);
+        this.props.updateRating(database, output_image, time_uploaded, rating, feedback);
         this.setState({ 
             open: false,
             cacheToDisplay: '',
@@ -176,11 +176,11 @@ class ImageResults extends Component {
         });
     };
 
-    handleClickOpenImage = (image, nLabels) => {
+    handleClickOpenImage = (image, tag) => {
         this.setState({
             openImage: true,
             individualImage: image,
-            nLabels: nLabels
+            tag: tag
         });
     };
 
@@ -188,7 +188,7 @@ class ImageResults extends Component {
         this.setState({ 
             openImage: false,
             individualImage: '',
-            nLabels: 0
+            tag: ''
         });
     };
 
@@ -221,7 +221,7 @@ class ImageResults extends Component {
         if(this.state.user_info !== undefined && this.state.user_info !== null) {
             if(this.state.user_info.CacheCollection !== null) {
                 var uploads = this.state.user_info.CacheCollection.map((image) => {
-                    const formatPath = image.original_image.replace(".", "");
+                    const formatPath = image.output_image.replace(".", "");
                     const { width, height } = image;
                     var resize = this.resizeImage(width, height);
                     return (
@@ -241,7 +241,8 @@ class ImageResults extends Component {
 
     renderCacheDialog() {
         const { classes } = this.props;
-        const { file_name, file_size, file_type, time_uploaded, time_required, cache, hyperparameters, height, width } = this.state.cacheToDisplay;
+        const { file_type, time_uploaded, time_required, output_image, input_image, transfer_image, plot_image } = this.state.cacheToDisplay;
+        // const images = [input_image, transfer_image, plot_image, output_image];
         return(
             <Dialog
                 classes={{ paper: classes.dialogPaper }}
@@ -250,37 +251,25 @@ class ImageResults extends Component {
                 open={this.state.open}
             >
                 <DialogTitle id="customized-dialog-title" onClose={this.handleClose}>
-                    {file_name}
+                    {output_image}
                 </DialogTitle>
                 <DialogContent style={infoContainer}>
-                    <div style={removeMargin}>
-                        <span style={bold}>File Size</span>: {file_size/1000000} mb
-                    </div>
-                    <div style={removeMargin}>
-                        <span style={bold}>File Type</span>: {file_type}
-                    </div>
                     <div style={removeMargin}>
                         <span style={bold}>Time Uploaded</span>: {this.timeConverter(time_uploaded)}
                     </div>
                     <div style={removeMargin}>
-                        <span style={bold}>Time Required</span>: {time_required} seconds
-                    </div>
-                    <div style={removeMargin}>
-                        <span style={bold}>File Dimensions</span>: {height} x {width} pixels
+                        <span style={bold}>Time Required</span>: {time_required/10} seconds
                     </div>
                 </DialogContent>
                 <Divider />
-                <DialogContent style={hyperContainer}>
-                    {this.renderHyperparameters(hyperparameters)}
-                </DialogContent>
                 <Divider />
                 <DialogContent style={cacheContainer}>
-                    {this.renderCacheImages(cache)}
+                    {this.renderCacheImages(input_image, transfer_image, plot_image, output_image)}
                 </DialogContent>
                 <DialogActions>
                     <DialogContent>
                         <Typography gutterBottom>
-                            Rate your segmentation, please!
+                            Rate your style transfer, please!
                         </Typography>
                         {this.renderRatings()}
                         {this.renderFeedback()}
@@ -299,8 +288,8 @@ class ImageResults extends Component {
                 id="standard-full-width"
                 label="Feedback column"
                 style={{ margin: 8 }}
-                placeholder="I liked/disliked this segmentation..."
-                helperText="Leave some feedback about your segmentation!"
+                placeholder="I liked/disliked this style transfer..."
+                helperText="Leave some feedback about your style transfer!"
                 fullWidth
                 onChange={this.handleChange('feedback')}
                 margin="normal"
@@ -341,10 +330,32 @@ class ImageResults extends Component {
         return format;
     }
 
-    renderCacheImages(cache) {
-        if(cache !== undefined) {
-            var cache = cache.map((cache_image) => {
-                const formatPath = cache_image.segmented_path.replace(".", "");
+    renderCacheImages(input, transfer, plot, output) {
+        console.log("this is input", input);
+        const images = [
+            {
+                'file': input,
+                'tag': 'Input File'
+            }, 
+            {
+                'file': transfer,
+                'tag': 'Style File'
+            }, 
+            {
+                'file': plot,
+                'tag': 'Loss Graph'
+            }, 
+            {
+                'file': output,
+                'tag': 'Output File'
+            }
+        ];
+        console.log("this is images", images);
+        
+        if(output !== undefined) {
+            var cache = images.map((image) => {
+                const formatPath = image.file.replace(".", "");
+                // const formatPath = image.replace(".", "");
                 const { height, width } = this.state.resize;
                 return (
                     <div style={cacheImageContainer}>
@@ -353,10 +364,10 @@ class ImageResults extends Component {
                             src={process.env.PUBLIC_URL + formatPath}
                             height={height}
                             width={width}
-                            onClick={() => this.handleClickOpenImage(formatPath, cache_image.nLabels)}
+                            onClick={() => this.handleClickOpenImage(formatPath, image.tag)}
                         />
                         <Typography style={center}>
-                            <span style={bold}>Number of labels</span>: {cache_image.nLabels}
+                            <span style={bold}>{image.tag}</span>
                         </Typography>
                     </div>
                 )
@@ -370,7 +381,7 @@ class ImageResults extends Component {
             return(
                 <IndividualImage 
                     handleClose={this.handleCloseImage}
-                    nLabels={this.state.nLabels}
+                    tag={this.state.tag}
                     image={this.state.individualImage}
                     openImage={this.state.openImage}
                 />
@@ -397,7 +408,7 @@ class ImageResults extends Component {
             <div>
                 <div style={titleGap}>
                     <Typography variant="h6" gutterBottom>
-                        These are the original images that you have uploaded. Please click on them to view your segmentations.
+                        These are the output style images. Please click on them to view your style transfer.
                     </Typography>
                 </div>
                 {this.renderImages()}

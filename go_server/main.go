@@ -29,6 +29,15 @@ type userUpdate struct {
 	Feedback string `json:"feedback"`
 }
 
+
+// type userUpdate struct {
+// 	UserID       string  `json:"db_id"`
+// 	FileName     string  `json:"file_name"`
+// 	TimeUploaded float32 `json:"time_uploaded"`
+// 	Rating       float32 `json:"rating"`
+// 	Feedback string `json:"feedback"`
+// }
+
 type userCollection struct {
 	Id              primitive.ObjectID `bson:"_id,omitempty"`
 	UserEmail       string             `bson:"userEmail"`
@@ -36,36 +45,32 @@ type userCollection struct {
 }
 
 type cache struct {
-	Segmentations []cachedImage   `bson:"segmentations" json:"cache"`
-	OriginalImage string          `bson:"originalImage" json:"original_image"`
-	Height        int32           `bson:"height" json:"height"`
-	Width         int32           `bson:"width" json:"width"`
+	OutputImage string   `bson:"outputImage" json:"output_image"`
+	PlotImage string   `bson:"plotImage" json:"plot_image"`
+	InputImage string          `bson:"inputImage" json:"input_image"`
+	TransferImage string		`bson:"transferImage" json:"transfer_image"`
 	TimeRequired  float32         `bson:"timeRequired" json:"time_required"`
-	FileName      string          `bson:"fileName" json:"file_name"`
-	FileType      string          `bson:"fileType" json:"file_type"`
-	FileSize      int32           `bson:"fileSize" json:"file_size"`
 	TimeUploaded  float32         `bson:"timeUploaded" json:"time_uploaded"`
 	Email         string          `bson:"email" json:"email"`
-	Parameters    hyperparameters `bson:"hyperparameters" json:"hyperparameters"`
 	Rating        float32         `bson:"rating" json:"rating"`
 	Feedback string `bson:"feedback" json:"feedback"`
 }
 
-type cachedImage struct {
-	NLabels       int    `bson:"nLabels" json:"nLabels"`
-	SegmentedPath string `bson:"segmented_path" json:"segmented_path"`
-}
+// type cachedImage struct {
+// 	NLabels       int    `bson:"nLabels" json:"nLabels"`
+// 	OutputPath string `bson:"output_path" json:"output_path"`
+// }
 
-type hyperparameters struct {
-	MaxIter            int32   `bson:"maxIter" json:"maxIter"`
-	MinLabels          int32   `bson:"minLabels" json:"minLabels"`
-	LearningRate       float32 `bson:"learningRate" json:"lr"`
-	NumberConvolutions int32   `bson:"nConv" json:"nConv"`
-	NumberSuperpixels  int32   `bson:"numSuperpixels" json:"num_superpixels"`
-	Compactness        int32   `bson:"compactness" json:"compactness"`
-	NumberChannel      int32   `bson:"nChannel" json:"nChannel"`
-	Momentum           float32 `bson:"momentum" json:"momentum"`
-}
+// type hyperparameters struct {
+// 	MaxIter            int32   `bson:"maxIter" json:"maxIter"`
+// 	MinLabels          int32   `bson:"minLabels" json:"minLabels"`
+// 	LearningRate       float32 `bson:"learningRate" json:"lr"`
+// 	NumberConvolutions int32   `bson:"nConv" json:"nConv"`
+// 	NumberSuperpixels  int32   `bson:"numSuperpixels" json:"num_superpixels"`
+// 	Compactness        int32   `bson:"compactness" json:"compactness"`
+// 	NumberChannel      int32   `bson:"nChannel" json:"nChannel"`
+// 	Momentum           float32 `bson:"momentum" json:"momentum"`
+// }
 
 var info *mongo.Database
 var userData *mongo.Collection
@@ -136,10 +141,10 @@ func processData(w http.ResponseWriter, r *http.Request) {
 
 		fmt.Println("this is go server processData")
 
-		fmt.Println("this is c contents", c.Segmentations)
-		fmt.Println("this is c time required", c.TimeRequired)
-		fmt.Println("this is c name", c.FileName)
-		fmt.Println("this is hyperparameters", c.Parameters)
+		// fmt.Println("this is c contents", c.Segmentations)
+		// fmt.Println("this is c time required", c.TimeRequired)
+		// fmt.Println("this is c name", c.FileName)
+		// fmt.Println("this is hyperparameters", c.Parameters)
 		fmt.Println("this is the email", c.Email)
 
 		// { size: { h: 14, w: 21, uom: "cm" } }
@@ -229,9 +234,14 @@ func updateRating(w http.ResponseWriter, r *http.Request) {
 
 		singleFilter := bson.D{{"_id", userID}}
 
+		// tripleFilter := bson.D{
+		// 	{"_id", userID},
+		// 	{"cacheCollection.fileName", userItem.FileName},
+		// 	{"cacheCollection.timeUploaded", userItem.TimeUploaded},
+		// }
+
 		tripleFilter := bson.D{
 			{"_id", userID},
-			{"cacheCollection.fileName", userItem.FileName},
 			{"cacheCollection.timeUploaded", userItem.TimeUploaded},
 		}
 

@@ -35,13 +35,14 @@ def add(files, time_uploaded, email):
     # https://stackoverflow.com/questions/44617476/how-to-execute-celery-tasks-conditionally-python
     counter = 0
     file_paths = []
+    filenames = []
     if checkGPU(): 
         formatted_time = str(int(time_uploaded))
         print("this is formatted", formatted_time)
         
         usr_dir = img_folder + email + '/'
     
-        usr_img_dir = img_folder + email + '/' + formatted_time + '/'
+        usr_img_dir = img_folder + email + '/' + formatted_time
         usr_input_img_dir = usr_img_dir + '/input' + '/'
         usr_transfer_img_dir = usr_img_dir + '/transfer' + '/'
         usr_output_img_dir = usr_img_dir + '/output' + '/'
@@ -86,10 +87,14 @@ def add(files, time_uploaded, email):
                 file_paths.append(usr_input_img)
                 saveImg(img, usr_input_img)
 
+                filenames.append(file_name)
+
             else:
                 usr_transfer_img =  usr_transfer_img_dir = usr_img_dir + '/transfer' + '/' + file_name
                 file_paths.append(usr_transfer_img)
                 saveImg(img, usr_transfer_img)
+
+                filenames.append(file_name)
 
             counter += 1
 
@@ -100,40 +105,36 @@ def add(files, time_uploaded, email):
         print("this is before seg model")
         print("this is file_paths", file_paths)
 
-        st = styleModule.Style_Transfer(usr_input_img, usr_transfer_img, usr_output_img_dir)
-        st.process()
+        output_name = filenames[0].rsplit('.', 1)[0] + '_' + filenames[1].rsplit('.', 1)[0] + '.png'
 
-        # seg_model = segmentationModule.Segmentation_Wrapper(img, hyperparameters, file_name, file_type, email, time_uploaded, usr_img_dir)
-        # cache = seg_model.start()
+        st = styleModule.Style_Transfer(usr_input_img, usr_transfer_img, usr_output_img_dir, output_name)
+        cache = st.process()
+
+        end_time = time.clock() - start_time
 
 
+        headers = {'Content-type': 'application/json'}
+        params = {
+            'output_image': cache['output'],
+            'plot_image': cache['plot'],
+            'input_image': usr_input_img,
+            'transfer_image': usr_transfer_img,
+            'time_required': end_time,
+            'time_uploaded': time_uploaded,
+            'email': email
+        }
 
-        # end_time = time.clock() - start_time
+        print("this is params", params)
 
-        # headers = {'Content-type': 'application/json'}
-        # params = {
-        #     'cache': cache,
-        #     'height': height,
-        #     'width': width,
-        #     'original_image': usr_original_img,
-        #     'time_required': end_time,
-        #     'file_name': file_name,
-        #     'file_type': file_type,
-        #     'file_size': file_size,
-        #     'time_uploaded': time_uploaded,
-        #     'hyperparameters': hyperparameters,
-        #     'email': email
-        # }
+        r = requests.post(url9, json=params, headers=headers)
 
-        # r = requests.post(url9, json=params, headers=headers)
+        link = r.content.decode("utf-8")
 
-        # link = r.content.decode("utf-8")
+        print(r.status_code)
+        print('this is response', r)
+        print("this is content", link)
 
-        # print(r.status_code)
-        # print('this is response', r)
-        # print("this is content", link)
-
-        # send_email(email, link)
+        send_email(email, link)
     
     else:
         add.apply_async(countdown=120)

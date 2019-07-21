@@ -14,15 +14,6 @@ import glob
 
 import torch
 
-
-# def compareFolders(folder1, folder2):
-#     input_file = os.listdir(folder1)[0]
-#     print("this is input file", input_file)
-#     files = glob.glob(folder2)
-#     print("this is files", files)
-#     for f in files:
-#         os.remove(input_file)
-
 # Take in base64 string and return PIL image
 def stringToImage(base64_string, file_type):
     if file_type == 'image/png':
@@ -46,8 +37,14 @@ def send_email(recipient, link):
     # script_dir = os.path.dirname(__file__)
     # file_path = os.path.join(script_dir, '../keys/keys.json')
 
-    with open('keys/keys.json') as data_file:    
+    print("this is current dir", os.listdir())
+    fpath = os.path.join('keys', 'keys,json')
+
+    with open(fpath) as data_file:    
         data = json.load(data_file)
+
+    # with open('keys/keys.json') as data_file:    
+    #     data = json.load(data_file)
 
     user = data["root_email"]["login"]
     pwd = data["root_email"]["pass"]

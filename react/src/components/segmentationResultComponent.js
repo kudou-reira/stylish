@@ -47,7 +47,7 @@ class SegmentationResult extends Component {
                 return(
                     <div>
                         <Typography variant="subtitle1" gutterBottom>
-                            Your segmentation has been received:
+                            Your style transfer query has been received:
                         </Typography>
                     </div>
                 )
@@ -57,7 +57,7 @@ class SegmentationResult extends Component {
                 return(
                     <div>
                         <Typography variant="subtitle1" gutterBottom>
-                            Your segmentation has not been received, or it has completed.
+                            Your style transfer query has not been received, or it has completed.
                         </Typography>
                     </div>
                 )
@@ -87,7 +87,7 @@ class SegmentationResult extends Component {
         return(
             <div>
                 <Typography variant="h4" gutterBottom>
-                    Segmentation Results
+                    Style Transfer Results
                 </Typography>
                 <div style={{ textAlign: "center" }}>
                     {this.renderSegmentationDisplay()}

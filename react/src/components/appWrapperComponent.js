@@ -148,7 +148,7 @@ class AppWrapper extends Component {
 				icon: 'N/A'
 			},
 			{
-				text: 'Segmentation Results',
+				text: 'Style Transfer Results',
 				path: '/result',
 				icon: 'M/A'
 			}
